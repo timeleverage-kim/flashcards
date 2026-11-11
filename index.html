@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>라이트너 단어 암기 카드</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header class="header">
+        <h1>단어 암기 카드</h1>
+        <p class="subtitle">영어 단어와 뜻을 카드로 추가하고 관리해 보세요.</p>
+      </header>
+
+      <div id="storageAlert" class="alert alert-warning" role="alert" hidden></div>
+
+      <!-- F1: 새 카드 추가 영역 -->
+      <section class="panel form-panel" aria-labelledby="addHeading">
+        <h2 id="addHeading">새 카드 추가</h2>
+        <form id="addCardForm" class="card-form" novalidate>
+          <div class="field-row">
+            <div class="field">
+              <label for="frontInput">앞면 (영어 단어)</label>
+              <input
+                id="frontInput"
+                name="front"
+                type="text"
+                placeholder="예: apple"
+                autocomplete="off"
+              />
+            </div>
+
+            <div class="field">
+              <label for="backInput">뒷면 (뜻)</label>
+              <input
+                id="backInput"
+                name="back"
+                type="text"
+                placeholder="예: 사과"
+                autocomplete="off"
+              />
+            </div>
+          </div>
+
+          <p id="formMessage" class="form-message" role="status" aria-live="polite"></p>
+
+          <button type="submit" class="btn btn-primary">카드 추가</button>
+        </form>
+      </section>
+
+      <!-- F2: 전체 카드 목록 조회 및 삭제 영역 -->
+      <section class="panel list-panel" aria-labelledby="listHeading">
+        <div class="panel-header">
+          <h2 id="listHeading">전체 카드 목록</h2>
+          <span id="totalCount" class="badge">총 0장</span>
+        </div>
+
+        <p id="listEmptyMessage" class="empty-list-text" hidden>
+          등록된 카드가 없습니다. 위에서 새 카드를 추가해 보세요.
+        </p>
+
+        <ul id="cardList" class="card-list"></ul>
+      </section>
+    </main>
+
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>
