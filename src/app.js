@@ -4,8 +4,8 @@ import {
   getCardsByIds,
   getDueCards,
   getTodayDateString,
+  gradeCard,
   parseStoredCards,
-  reviewCard,
   searchCards,
   shuffleCards,
 } from './cards.js';
@@ -210,7 +210,7 @@ function renderCardList() {
     boxSpan.textContent = `상자 ${card.box}`;
 
     const dateSpan = document.createElement('span');
-    dateSpan.textContent = `다음 복습: ${card.nextReviewDate}`;
+    dateSpan.textContent = `다음 복습: ${card.nextReview ?? card.nextReviewDate}`;
 
     metaDiv.append(boxSpan, dateSpan);
     mainDiv.append(wordsDiv, metaDiv);
@@ -249,8 +249,9 @@ function handleAddCardSubmit(event) {
   state.cards = result.cards;
   saveCardsToStorage(state.cards);
 
-  // 새로 추가된 카드는 nextReviewDate가 오늘이므로 오늘의 학습 대기열에 바로 포함한다.
-  if (result.card.nextReviewDate <= today) {
+  // getDueCards를 사용해 새로 추가된 카드가 오늘 복습 대상인지 확인 후 대기열에 포함한다.
+  const dueAdded = getDueCards([result.card], today);
+  if (dueAdded.length > 0) {
     state.studyQueue.push(result.card.id);
   }
 
@@ -283,7 +284,9 @@ function handleReview(isKnown) {
   }
 
   const today = getTodayDateString();
-  state.cards = reviewCard(state.cards, currentCard.id, isKnown, today);
+  state.cards = state.cards.map((card) =>
+    card.id === currentCard.id ? gradeCard(card, isKnown, today) : card
+  );
   saveCardsToStorage(state.cards);
 
   // '몰라요'를 선택한 카드는 기록해 두고, '알아요'를 선택하면 목록에서 제외한다.
@@ -380,7 +383,7 @@ function handleSearchInput() {
 function initApp() {
   state.cards = loadCardsFromStorage();
   const today = getTodayDateString();
-  const dueCards = shuffleCards(getDueCards(state.cards, today));
+  const dueCards = getDueCards(state.cards, today);
   state.studyQueue = dueCards.map((card) => card.id);
   state.unknownCardIds = [];
   state.isFlipped = false;

@@ -36,6 +36,9 @@ export function isDuplicateFront(cards, front) {
   return cards.some((card) => card.front.trim().toLowerCase() === normalizedFront);
 }
 
+// 고유 ID 충돌 방지를 위한 일련번호 카운터
+let idCounter = 0;
+
 /**
  * 고유한 카드 ID를 생성한다.
  * @param {number} [timestamp]
@@ -43,10 +46,73 @@ export function isDuplicateFront(cards, front) {
  * @returns {string}
  */
 export function generateCardId(timestamp = Date.now(), randomFn = Math.random) {
+  idCounter += 1;
   const randomSuffix = Math.floor(randomFn() * 100000)
     .toString(36)
     .padStart(4, '0');
-  return `${timestamp}-${randomSuffix}`;
+  return `${timestamp}-${idCounter}-${randomSuffix}`;
+}
+
+/**
+ * YYYY-MM-DD 날짜 문자열에 지정한 일수를 더한 새 날짜 문자열을 반환한다.
+ * @param {string} dateString
+ * @param {number} days
+ * @returns {string}
+ */
+export function addDays(dateString, days) {
+  const [year, month, day] = dateString.split('-').map(Number);
+  const targetDate = new Date(year, month - 1, day + days);
+  return getTodayDateString(targetDate);
+}
+
+export const addDaysToDateString = addDays;
+
+/**
+ * 앞면(영어 단어)과 뒷면(뜻)을 받아 새 카드 객체를 생성한다.
+ * 앞면 또는 뒷면이 비어 있거나 공백만 있으면 에러를 던진다.
+ * @param {string} front
+ * @param {string} back
+ * @param {string} [today]
+ * @returns {{ id: string, front: string, back: string, box: number, nextReview: string, nextReviewDate: string, createdAt: string }}
+ */
+export function createCard(front, back, today = getTodayDateString()) {
+  const trimmedFront = typeof front === 'string' ? front.trim() : '';
+  const trimmedBack = typeof back === 'string' ? back.trim() : '';
+
+  if (!trimmedFront || !trimmedBack) {
+    throw new Error('영어 단어와 뜻을 모두 입력해 주세요.');
+  }
+
+  return {
+    id: generateCardId(),
+    front: trimmedFront,
+    back: trimmedBack,
+    box: INITIAL_BOX,
+    nextReview: today,
+    nextReviewDate: today,
+    createdAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * 카드 1장에 대해 학습 결과(알아요/몰라요)를 반영한 새 카드 객체를 반환한다.
+ * 원본 카드 객체는 변경하지 않는다(불변성 유지).
+ * @param {object} card
+ * @param {boolean} isKnown
+ * @param {string} [today]
+ * @returns {object}
+ */
+export function gradeCard(card, isKnown, today = getTodayDateString()) {
+  const nextBox = isKnown ? Math.min(card.box + 1, MAX_BOX) : MIN_BOX;
+  const intervalDays = BOX_INTERVALS[nextBox];
+  const nextReview = addDays(today, intervalDays);
+
+  return {
+    ...card,
+    box: nextBox,
+    nextReview,
+    nextReviewDate: nextReview,
+  };
 }
 
 /**
@@ -64,18 +130,18 @@ export function addCard(
   cards,
   { front, back, today = getTodayDateString(), now = new Date().toISOString(), id }
 ) {
-  const trimmedFront = typeof front === 'string' ? front.trim() : '';
-  const trimmedBack = typeof back === 'string' ? back.trim() : '';
-
-  if (!trimmedFront || !trimmedBack) {
+  let baseCard;
+  try {
+    baseCard = createCard(front, back, today);
+  } catch (err) {
     return {
       ok: false,
       reason: 'EMPTY',
-      message: '영어 단어와 뜻을 모두 입력해 주세요.',
+      message: err.message,
     };
   }
 
-  if (isDuplicateFront(cards, trimmedFront)) {
+  if (isDuplicateFront(cards, baseCard.front)) {
     return {
       ok: false,
       reason: 'DUPLICATE',
@@ -84,11 +150,8 @@ export function addCard(
   }
 
   const newCard = {
-    id: id || generateCardId(),
-    front: trimmedFront,
-    back: trimmedBack,
-    box: INITIAL_BOX,
-    nextReviewDate: today,
+    ...baseCard,
+    id: id || baseCard.id,
     createdAt: now,
   };
 
@@ -119,6 +182,7 @@ function isValidCardShape(item) {
     return false;
   }
 
+  const reviewDate = item.nextReview ?? item.nextReviewDate;
   return (
     typeof item.id === 'string' &&
     typeof item.front === 'string' &&
@@ -126,8 +190,8 @@ function isValidCardShape(item) {
     Number.isInteger(item.box) &&
     item.box >= MIN_BOX &&
     item.box <= MAX_BOX &&
-    typeof item.nextReviewDate === 'string' &&
-    /^\d{4}-\d{2}-\d{2}$/.test(item.nextReviewDate)
+    typeof reviewDate === 'string' &&
+    /^\d{4}-\d{2}-\d{2}$/.test(reviewDate)
   );
 }
 
@@ -154,25 +218,15 @@ export function parseStoredCards(rawValue) {
 }
 
 /**
- * YYYY-MM-DD 날짜 문자열에 지정한 일수를 더한 새 날짜 문자열을 반환한다.
- * @param {string} dateString
- * @param {number} days
- * @returns {string}
- */
-export function addDaysToDateString(dateString, days) {
-  const [year, month, day] = dateString.split('-').map(Number);
-  const targetDate = new Date(year, month - 1, day + days);
-  return getTodayDateString(targetDate);
-}
-
-/**
- * 전체 카드 중 오늘 복습해야 할 카드(nextReviewDate <= today)만 골라낸다.
+ * 전체 카드 중 오늘 복습해야 할 카드(nextReview <= today)만 골라 상자 번호 오름차순으로 반환한다.
  * @param {Array<object>} cards
  * @param {string} [today]
  * @returns {Array<object>}
  */
 export function getDueCards(cards, today = getTodayDateString()) {
-  return cards.filter((card) => card.nextReviewDate <= today);
+  return cards
+    .filter((card) => (card.nextReview ?? card.nextReviewDate) <= today)
+    .sort((a, b) => a.box - b.box);
 }
 
 /**
@@ -199,21 +253,7 @@ export function shuffleCards(cards, randomFn = Math.random) {
  * @returns {Array<object>}
  */
 export function reviewCard(cards, cardId, isKnown, today = getTodayDateString()) {
-  return cards.map((card) => {
-    if (card.id !== cardId) {
-      return card;
-    }
-
-    const nextBox = isKnown ? Math.min(card.box + 1, MAX_BOX) : MIN_BOX;
-    const intervalDays = BOX_INTERVALS[nextBox];
-    const nextReviewDate = addDaysToDateString(today, intervalDays);
-
-    return {
-      ...card,
-      box: nextBox,
-      nextReviewDate,
-    };
-  });
+  return cards.map((card) => (card.id === cardId ? gradeCard(card, isKnown, today) : card));
 }
 
 /**
