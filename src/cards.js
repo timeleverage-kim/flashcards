@@ -1,7 +1,16 @@
-// 라이트너 초기 상자 번호
+// 라이트너 초기 상자 번호 및 범위
 export const INITIAL_BOX = 1;
 const MIN_BOX = 1;
 const MAX_BOX = 5;
+
+// 라이트너 상자별 복습 간격(일수)
+export const BOX_INTERVALS = {
+  1: 1,
+  2: 2,
+  3: 4,
+  4: 7,
+  5: 14,
+};
 
 /**
  * 로컬 시간 기준 Date 객체를 YYYY-MM-DD 문자열로 변환한다.
@@ -142,4 +151,98 @@ export function parseStoredCards(rawValue) {
   } catch {
     return { cards: [], corrupted: true };
   }
+}
+
+/**
+ * YYYY-MM-DD 날짜 문자열에 지정한 일수를 더한 새 날짜 문자열을 반환한다.
+ * @param {string} dateString
+ * @param {number} days
+ * @returns {string}
+ */
+export function addDaysToDateString(dateString, days) {
+  const [year, month, day] = dateString.split('-').map(Number);
+  const targetDate = new Date(year, month - 1, day + days);
+  return getTodayDateString(targetDate);
+}
+
+/**
+ * 전체 카드 중 오늘 복습해야 할 카드(nextReviewDate <= today)만 골라낸다.
+ * @param {Array<object>} cards
+ * @param {string} [today]
+ * @returns {Array<object>}
+ */
+export function getDueCards(cards, today = getTodayDateString()) {
+  return cards.filter((card) => card.nextReviewDate <= today);
+}
+
+/**
+ * 원본 배열을 바꾸지 않고 무작위로 섞은 새 카드 배열을 반환한다.
+ * @param {Array<object>} cards
+ * @param {Function} [randomFn]
+ * @returns {Array<object>}
+ */
+export function shuffleCards(cards, randomFn = Math.random) {
+  const copied = [...cards];
+  for (let i = copied.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(randomFn() * (i + 1));
+    [copied[i], copied[j]] = [copied[j], copied[i]];
+  }
+  return copied;
+}
+
+/**
+ * 학습 결과(알아요/몰라요)에 따라 해당 카드의 상자 번호와 다음 복습 날짜를 갱신한 새 배열을 반환한다.
+ * @param {Array<object>} cards
+ * @param {string} cardId
+ * @param {boolean} isKnown
+ * @param {string} [today]
+ * @returns {Array<object>}
+ */
+export function reviewCard(cards, cardId, isKnown, today = getTodayDateString()) {
+  return cards.map((card) => {
+    if (card.id !== cardId) {
+      return card;
+    }
+
+    const nextBox = isKnown ? Math.min(card.box + 1, MAX_BOX) : MIN_BOX;
+    const intervalDays = BOX_INTERVALS[nextBox];
+    const nextReviewDate = addDaysToDateString(today, intervalDays);
+
+    return {
+      ...card,
+      box: nextBox,
+      nextReviewDate,
+    };
+  });
+}
+
+/**
+ * 전체 카드 중 지정한 ID 목록(예: '몰라요'를 선택한 카드 ID)에 해당하는 카드만 골라낸다.
+ * @param {Array<object>} cards
+ * @param {Array<string>} cardIds
+ * @returns {Array<object>}
+ */
+export function getCardsByIds(cards, cardIds = []) {
+  const idSet = new Set(cardIds);
+  return cards.filter((card) => idSet.has(card.id));
+}
+
+/**
+ * 앞면(영어 단어) 또는 뒷면(뜻)에 검색어가 부분 일치하는 카드 목록을 반환한다.
+ * 앞뒤 공백을 제거하고 대소문자를 구분하지 않는다.
+ * @param {Array<object>} cards
+ * @param {string} query
+ * @returns {Array<object>}
+ */
+export function searchCards(cards, query = '') {
+  const normalizedQuery = typeof query === 'string' ? query.trim().toLowerCase() : '';
+  if (!normalizedQuery) {
+    return [...cards];
+  }
+
+  return cards.filter(
+    (card) =>
+      card.front.toLowerCase().includes(normalizedQuery) ||
+      card.back.toLowerCase().includes(normalizedQuery)
+  );
 }

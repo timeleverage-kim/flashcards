@@ -233,3 +233,204 @@ body {
 .btn-delete:hover {
   background: #fef2f2;
 }
+
+/* 접근성용 화면 숨김 라벨 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.badge-primary {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+/* F3, F4: 오늘의 학습 영역 스타일 */
+[hidden] {
+  display: none !important;
+}
+
+.study-done-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.study-done-text {
+  color: var(--success);
+  font-weight: 600;
+  padding: 0;
+}
+
+.study-done-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn-restart {
+  padding: 9px 18px;
+}
+
+.btn-retry-unknown {
+  background: #f59e0b;
+}
+
+.btn-retry-unknown:hover:not(:disabled) {
+  background: #d97706;
+}
+
+.study-area {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.study-card-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.study-card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.study-box-badge {
+  background: #f1f5f9;
+  color: var(--text);
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.study-flip-hint {
+  color: var(--muted);
+}
+
+.study-card {
+  width: 100%;
+  min-height: 160px;
+  padding: 24px 20px;
+  border: 2px solid #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.1s ease;
+}
+
+.study-card:hover {
+  border-color: var(--primary);
+  background: #f0f7ff;
+}
+
+.study-card.is-flipped {
+  border-color: var(--primary);
+  background: #ffffff;
+}
+
+.study-card-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.study-card-front {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.study-card-back-wrap {
+  width: 100%;
+  margin-top: 10px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.study-card-back-wrap[hidden] {
+  display: none;
+}
+
+.study-card-back {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--primary);
+  word-break: break-word;
+}
+
+.study-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-unknown {
+  background: var(--danger);
+}
+
+.btn-unknown:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.btn-known {
+  background: var(--success);
+}
+
+.btn-known:hover:not(:disabled) {
+  background: #15803d;
+}
+
+/* F7: 검색창 스타일 */
+.search-box {
+  margin-bottom: 14px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.search-box input:focus {
+  outline: 2px solid #bfdbfe;
+  border-color: var(--primary);
+}

@@ -49,15 +49,107 @@
         </form>
       </section>
 
-      <!-- F2: 전체 카드 목록 조회 및 삭제 영역 -->
+      <!-- F3, F4, F5: 오늘의 학습 모드 영역 -->
+      <section class="panel study-panel" aria-labelledby="studyHeading">
+        <div class="panel-header">
+          <h2 id="studyHeading">오늘의 학습</h2>
+          <span id="dueCount" class="badge badge-primary">남은 카드 0장</span>
+        </div>
+
+        <!-- 전체 카드가 0장일 때 안내 -->
+        <p id="studyNoCardsMessage" class="empty-list-text" hidden>
+          등록된 카드가 없습니다. 먼저 아래에서 새 카드를 추가해 주세요.
+        </p>
+
+        <!-- 학습 진행 및 완료 영역 -->
+        <div id="studyArea" class="study-area" hidden>
+          <!-- 오늘 복습할 카드가 0장일 때 (학습 완료/대기) 안내 및 재시작 버튼 -->
+          <div id="studyDoneWrap" class="study-done-wrap" hidden>
+            <p id="studyDoneMessage" class="empty-list-text study-done-text">
+              오늘 복습할 카드가 없습니다. 오늘의 학습을 모두 마쳤어요!
+            </p>
+            <div class="study-done-actions">
+              <button
+                type="button"
+                id="retryUnknownBtn"
+                class="btn btn-retry-unknown btn-restart"
+                disabled
+              >
+                몰라요 카드 다시 학습 (0장)
+              </button>
+              <button type="button" id="restartStudyBtn" class="btn btn-primary btn-restart">
+                전체 학습 재시작
+              </button>
+            </div>
+          </div>
+
+          <!-- 현재 학습 중인 카드 표시 영역 -->
+          <div id="studyCardWrap" class="study-card-wrap">
+            <div class="study-card-meta">
+              <span id="studyCardBox" class="study-box-badge">상자 1</span>
+              <span id="studyFlipHint" class="study-flip-hint">카드를 클릭해 뜻을 확인하세요</span>
+            </div>
+
+            <button
+              type="button"
+              id="studyCard"
+              class="study-card"
+              aria-live="polite"
+            >
+              <span class="study-card-label">단어 (앞면)</span>
+              <strong id="studyCardFront" class="study-card-front"></strong>
+
+              <div id="studyCardBackWrap" class="study-card-back-wrap" hidden>
+                <span class="study-card-label">뜻 (뒷면)</span>
+                <p id="studyCardBack" class="study-card-back"></p>
+              </div>
+            </button>
+          </div>
+
+          <div class="study-actions">
+            <button
+              type="button"
+              id="unknownBtn"
+              class="btn btn-unknown"
+              disabled
+            >
+              몰라요 (상자 1로)
+            </button>
+            <button
+              type="button"
+              id="knownBtn"
+              class="btn btn-known"
+              disabled
+            >
+              알아요 (다음 상자로)
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- F2, F7: 전체 카드 목록 조회·검색 및 삭제 영역 -->
       <section class="panel list-panel" aria-labelledby="listHeading">
         <div class="panel-header">
           <h2 id="listHeading">전체 카드 목록</h2>
           <span id="totalCount" class="badge">총 0장</span>
         </div>
 
+        <div class="search-box">
+          <label for="searchInput" class="sr-only">카드 검색</label>
+          <input
+            id="searchInput"
+            type="search"
+            placeholder="영어 단어 또는 뜻으로 검색..."
+            autocomplete="off"
+          />
+        </div>
+
         <p id="listEmptyMessage" class="empty-list-text" hidden>
           등록된 카드가 없습니다. 위에서 새 카드를 추가해 보세요.
+        </p>
+
+        <p id="searchEmptyMessage" class="empty-list-text" hidden>
+          검색 결과가 없습니다.
         </p>
 
         <ul id="cardList" class="card-list"></ul>
